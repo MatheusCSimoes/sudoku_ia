@@ -1,29 +1,124 @@
-let matrix = [];
-let quantidade = [0,0,0,0,0,0,0,0,0,0];
 let faltantes = [];
-let funcObjetivo = 0;
-let funcObjetivoPre = 0;
-let individuo = []
-let individuoPre = []
-let timeTotal = new Date()
-let timeLap = new Date()
-let mudar = 0;
-let valor = 0;
-//tentantiva para achar a solução
-let tentantivaSol = 0
-//Iteração numa tentativa
-let iteracaoHill = 0
-//No de iterações maximas numa tentativa
-const cicloiteracao = 10000
-let numeroIteracoes = cicloiteracao
-//historico
+let quantidade = [0,0,0,0,0,0,0,0,0,0];
 let historico = []
+let quanitdadeMinimosLocales = 100
 
-const hillClimbing = () => {
+const hillClimbingFirstChoice = () => {
+
+	let matrix = [];
+	let funcObjetivo = 0;
+	let funcObjetivoPre = 0;
+	let individuo = []
+	let individuoPre = []
+	let timeTotal = new Date()
+	let timeLap = new Date()
+	let mudar = 0;
+	let valor = 0;
+	//tentantiva para achar a solução
+	let tentantivaSol = 0
+	//Iteração numa tentativa
+	let iteracaoHill = 0
+	//No de iterações maximas numa tentativa
+	const cicloiteracao = 10000
+	let numeroIteracoes = cicloiteracao
+	//historico
+	let historico = []
+
+	fixarNumeros()
+	cellsFixed = true;
+	const inicializarDatos = () => {
+		timeLap = new Date()
+		iteracaoHill = 0
+		individuo = []
+		matrix = inicializarMatriz()
+		let temp = preencherSudoku(matrix,faltantes)
+		individuo = temp.individuo
+		matrix = temp.matrix
+		funcObjetivo = calFuncObjetivo(matrix)
+		funcObjetivoPre = clone(funcObjetivo)
+		individuoPre = clone(individuo)
+	}
+
+
+	const job = () => {
+		setTimeout(() => {
+			trabalhar()
+		}, 10);
+	}
+
+	const trabalhar = () => {
+		funcObjetivo = 0;
+		iteracaoHill++
+		numeroIteracoes--
+		melhoraFuncObjetivo()
+		matrix = inicializarMatriz()
+		matrix = atualizarSudoku(matrix,individuo,faltantes)
+		funcObjetivo = calFuncObjetivo(matrix)
+
+		if(funcObjetivo < funcObjetivoPre){
+
+			if(historico[tentantivaSol] == undefined){
+				historico[tentantivaSol] = {
+					melhorIndividuo:[],
+					iteracoes:[],
+					tentMax:0,
+					tempototal:0,
+				}
+			}
+
+			numeroIteracoes = cicloiteracao
+			funcObjetivoPre = clone(funcObjetivo)
+			individuoPre = clone(individuo)
+			// console.log(individuoPre)
+			// console.log("Pos:",mudar,"Val:",valor, "iteracao:", iteracaoHill)
+			let tempotemp = (((new Date()).getTime() - timeLap.getTime())/1000)
+			console.log(`Novo F: ${funcObjetivo}, Time: ${tempotemp}, Iteração: ${iteracaoHill}`)
+			historico[tentantivaSol].iteracoes.push({
+				f:funcObjetivo,
+				t:tempotemp,
+				i:iteracaoHill
+			})
+		}
+		else{
+			individuo = clone(individuoPre)
+		}
+		if(numeroIteracoes == 0){
+			let tempotemp = (((new Date()).getTime() - timeTotal.getTime())/1000)
+			const style = 'color: red; font-size: 14px';
+			console.log("%c Achei minimo local",style)
+			console.log(individuoPre)
+			console.log(`Novo F: ${funcObjetivoPre}, Iteração: ${iteracaoHill}, Time: ${(((new Date()).getTime() - timeLap.getTime())/1000)}, Total time: ${tempotemp}`)
+			historico[tentantivaSol].tentMax = iteracaoHill
+			historico[tentantivaSol].melhorIndividuo = individuoPre
+			historico[tentantivaSol].tempototal = tempotemp
+			tentantivaSol++;
+			inicializarDatos()
+		}
+		if(funcObjetivoPre != 0)
+			job()
+	}
+
+	const melhoraFuncObjetivo = () =>{
+		// console.log(individuo)
+		let pos = Math.floor((Math.random() * individuo.length));
+		// console.log("pos",pos)
+		let numMax = individuo.length - pos;
+		// console.log("max",numMax)
+		let rand = Math.floor((Math.random() * numMax));
+		// console.log("rand",rand)
+		mudar = pos;
+		valor = rand
+		// if(individuo[pos] == rand)
+			// melhoraFuncObjetivo()
+		// else
+			individuo[pos] = rand;
+		// console.log(individuo)
+	}
+
 	funcObjetivo = 0;
 	funcObjetivoPre = 0
 	contarNumeros()
-	crearFaltantes()
+	faltantes = crearFaltantes()
 
 	inicializarDatos()
 	console.log("Começo:",funcObjetivo)
@@ -31,109 +126,202 @@ const hillClimbing = () => {
 	job()
 }
 
-const inicializarDatos = () => {
-	timeLap = new Date()
-	iteracaoHill = 0
-	individuo = []
-	inicializarMatriz()
-	preencherSudoku()
-	calFuncObjetivo()
-	funcObjetivoPre = clone(funcObjetivo)
-	individuoPre = clone(individuo)
-}
+const hillClimbingEstocastico = () => {
 
-const job = () => {
-	setTimeout(() => {
-		trabalhar()
-	}, 10);
-}
+	let matrix = [];
+	let funcObjetivo = 0;
+	let funcObjetivoPre = 0;
+	let individuo = []
+	let individuoPre = []
+	let timeTotal = new Date()
+	let timeLap = new Date()
+	let mudar = 0;
+	let valor = 0;
+	//tentantiva para achar a solução
+	let tentantivaSol = 0
+	//Iteração numa tentativa
+	let iteracaoHill = 0
+	//No de iterações maximas numa tentativa
+	const cicloiteracao = 10
+	let numeroIteracoes = cicloiteracao
 
-const trabalhar = () => {
-	funcObjetivo = 0;
-	iteracaoHill++
-	numeroIteracoes--
-	melhoraFuncObjetivo()
-	inicializarMatriz()
-	atualizarSudoku()
-	calFuncObjetivo()
+	fixarNumeros()
+	cellsFixed = true;
+	const inicializarDatos = () => {
+		timeLap = new Date()
+		iteracaoHill = 0
+		individuo = []
+		matrix = inicializarMatriz()
+		let temp = preencherSudoku(matrix,faltantes)
+		individuo = temp.individuo
+		matrix = temp.matrix
+		funcObjetivo = calFuncObjetivo(matrix)
+		funcObjetivoPre = clone(funcObjetivo)
+		individuoPre = clone(individuo)
+	}
 
-	if(funcObjetivo < funcObjetivoPre){
 
-		if(historico[tentantivaSol] == undefined){
-			historico[tentantivaSol] = {
-				melhorIndividuo:[],
-				iteracoes:[],
-				tentMax:0,
-				tempototal:0,
+	const job = () => {
+		setTimeout(() => {
+			trabalhar()
+		}, 10);
+	}
+
+	const trabalhar = () => {
+		funcObjetivo = 0;
+		iteracaoHill++
+		numeroIteracoes--
+
+		melhoraFuncObjetivo()
+
+		matrix = inicializarMatriz()
+		matrix = atualizarSudoku(matrix,individuo,faltantes)
+		funcObjetivo = calFuncObjetivo(matrix)
+
+		if(funcObjetivo < funcObjetivoPre){
+
+			if(historico[tentantivaSol] == undefined){
+				historico[tentantivaSol] = {
+					melhorIndividuo:[],
+					iteracoes:[],
+					tentMax:0,
+					tempototal:0,
+				}
+			}
+
+			numeroIteracoes = cicloiteracao
+			funcObjetivoPre = clone(funcObjetivo)
+			individuoPre = clone(individuo)
+			// console.log(individuoPre)
+			// console.log("Pos:",mudar,"Val:",valor, "iteracao:", iteracaoHill)
+			let tempotemp = (((new Date()).getTime() - timeLap.getTime())/1000)
+			console.log(`Novo F: ${funcObjetivo}, Time: ${tempotemp}, Iteração: ${iteracaoHill}`)
+			historico[tentantivaSol].iteracoes.push({
+				f:funcObjetivo,
+				t:tempotemp,
+				i:iteracaoHill
+			})
+		}
+		else{
+			individuo = clone(individuoPre)
+		}
+		if(numeroIteracoes == 0){
+			let tempotemp = (((new Date()).getTime() - timeTotal.getTime())/1000)
+			const style = 'color: red; font-size: 14px';
+			console.log("%c Achei minimo local "+(tentantivaSol+1),style)
+			console.log(individuoPre)
+			console.log(`Novo F: ${funcObjetivoPre}, Iteração: ${iteracaoHill}, Time: ${(((new Date()).getTime() - timeLap.getTime())/1000)}, Total time: ${tempotemp}`)
+			historico[tentantivaSol].tentMax = iteracaoHill
+			historico[tentantivaSol].melhorIndividuo = individuoPre
+			historico[tentantivaSol].tempototal = tempotemp
+			tentantivaSol++;
+			inicializarDatos()
+		}
+		if(funcObjetivoPre != 0){
+			if(tentantivaSol != quanitdadeMinimosLocales){
+				job()
+			}
+			else{
+				const style = 'color: red; font-size: 14px';
+				console.log("%c Acabei",style)
 			}
 		}
 
-		numeroIteracoes = cicloiteracao
-		funcObjetivoPre = clone(funcObjetivo)
-		individuoPre = clone(individuo)
-		// console.log(individuoPre)
-		// console.log("Pos:",mudar,"Val:",valor, "iteracao:", iteracaoHill)
-		let tempotemp = (((new Date()).getTime() - timeLap.getTime())/1000)
-		console.log(`Novo F: ${funcObjetivo}, Time: ${tempotemp}, Iteração: ${iteracaoHill}`)
-		historico[tentantivaSol].iteracoes.push({
-			f:funcObjetivo,
-			t:tempotemp,
-			i:iteracaoHill
-		})
 	}
-	else{
-		individuo = clone(individuoPre)
-	}
-	if(numeroIteracoes == 0){
-		let tempotemp = (((new Date()).getTime() - timeTotal.getTime())/1000)
-		const style = 'color: red; font-size: 14px';
-		console.log("%c Achei minimo local",style)
-		console.log(individuoPre)
-		console.log(`Novo F: ${funcObjetivoPre}, Iteração: ${iteracaoHill}, Time: ${(((new Date()).getTime() - timeLap.getTime())/1000)}, Total time: ${tempotemp}`)
-		historico[tentantivaSol].tentMax = iteracaoHill
-		historico[tentantivaSol].melhorIndividuo = individuoPre
-		historico[tentantivaSol].tempototal = tempotemp
-		tentantivaSol++;
-		inicializarDatos()
-	}
-	if(funcObjetivoPre != 0)
-		job()
-}
 
-const melhoraFuncObjetivo = () =>{
-	// console.log(individuo)
-	let pos = Math.floor((Math.random() * individuo.length));
-	// console.log("pos",pos)
-	let numMax = individuo.length - pos;
-	// console.log("max",numMax)
-	let rand = Math.floor((Math.random() * numMax));
-	// console.log("rand",rand)
-	mudar = pos;
-	valor = rand
-	// if(individuo[pos] == rand)
-		// melhoraFuncObjetivo()
-	// else
-		individuo[pos] = rand;
-	// console.log(individuo)
+	const melhoraFuncObjetivo = () =>{
+		// console.log("individuo Velho", individuo)
+		let melhor = 100
+		let melhorIndividuo = []
+		let pos = 100
+		let aumento = 1
+		for (let i = 0; i < individuo.length; i++) {
+			let _individuo = clone(individuo)
+			let max = individuo.length - i;
+			let value = _individuo[i];
+			let valaumento = value + aumento
+			_individuo[i] = valaumento%max
+			let tent = 10
+			while(faltantes[_individuo[i]] == faltantes[value]){
+				tent--
+				valaumento = valaumento + aumento
+				_individuo[i] = valaumento%max
+				if(tent == 0)
+					break
+			}
+			let matrixtemp = inicializarMatriz()
+			matrixtemp = atualizarSudoku(matrixtemp,_individuo,faltantes)
+			_funcObjetivo = calFuncObjetivo(matrixtemp)
+			if(_funcObjetivo < melhor){
+				// console.log("individuo Novo", _individuo)
+				melhor = _funcObjetivo
+				melhorIndividuo = clone(_individuo)
+				pos = i
+			}
+
+			_individuo = clone(individuo)
+			value = _individuo[i];
+			valaumento = value - aumento
+			if(valaumento < 0)
+				valaumento = valaumento + max
+			_individuo[i] = valaumento
+			tent = 10
+			while(faltantes[_individuo[i]] == faltantes[value]){
+				tent--
+				valaumento = valaumento - aumento
+				if(valaumento < 0)
+					valaumento = valaumento + max
+				_individuo[i] = valaumento
+				if(tent == 0)
+					break
+			}
+			matrixtemp = inicializarMatriz()
+			matrixtemp = atualizarSudoku(matrixtemp,_individuo,faltantes)
+			_funcObjetivo = calFuncObjetivo(matrixtemp)
+			if(_funcObjetivo < melhor){
+				// console.log("individuo Novo", _individuo)
+				melhor = _funcObjetivo
+				melhorIndividuo = clone(_individuo)
+				pos = i
+			}
+		}
+
+		// console.log(melhor,pos, melhorIndividuo)
+			// console.log("individuo Novo", melhorIndividuo)
+		individuo = clone(melhorIndividuo);
+	}
+
+	funcObjetivo = 0;
+	funcObjetivoPre = 0
+	contarNumeros()
+	faltantes = crearFaltantes()
+	// faltantes = shuffle(faltantes)
+
+	inicializarDatos()
+	console.log("Começo:",funcObjetivo)
+	console.log("Individuo:",individuo)
+	job()
 }
 
 const inicializarMatriz = () => {
+	let m = []
 	for(let linha = 1; linha < 10; linha += 1) {
-		matrix[linha] = [];
+		m[linha] = [];
 		for(let coluna = 1; coluna < 10; coluna += 1) {
 			if(document.getElementById('cell-'+(linha)+(coluna)).disabled == true)
-				matrix[linha][coluna] = sudoku(linha,coluna);
+				m[linha][coluna] = sudoku(linha,coluna);
 			else
-				matrix[linha][coluna] = 0;
+				m[linha][coluna] = 0;
     }
-  }
+	}
+	return m
 }
 
-const calFuncObjetivo = () => {
-	// let f = 0
-	funcObjetivo += contarNumerosRepetidosColuna();
-	funcObjetivo += contarNumerosRepetidosLinha();
-	funcObjetivo += contarNumerosRepetidosBloco();
+const calFuncObjetivo = (matrix) => {
+	let f = 0
+	f += contarNumerosRepetidosColuna(matrix);
+	f += contarNumerosRepetidosLinha(matrix);
+	f += contarNumerosRepetidosBloco(matrix);
 	// console.log("funcCalculada",funcObjetivo)
 
 	// for(let linha = 1; linha < 10; linha += 1) {
@@ -146,10 +334,10 @@ const calFuncObjetivo = () => {
 	//    }
 	//  }
 	//  console.log(funcObjetivo)
- 	// return f
+ 	return f
 }
 
-const contarNumerosRepetidosColuna = () => {
+const contarNumerosRepetidosColuna = (matrix) => {
 	let quantidadeNumeros = 0
 	for(let coluna = 1; coluna < 10; coluna += 1) {
 		let feitos = [0,0,0,0,0,0,0,0,0,0]
@@ -167,7 +355,7 @@ const contarNumerosRepetidosColuna = () => {
   return quantidadeNumeros
 }
 
-const contarNumerosRepetidosLinha = () => {
+const contarNumerosRepetidosLinha = (matrix) => {
 	let quantidadeNumeros = 0
 	for(let linha = 1; linha < 10; linha += 1) {
 		let feitos = [0,0,0,0,0,0,0,0,0,0]
@@ -185,7 +373,7 @@ const contarNumerosRepetidosLinha = () => {
   return quantidadeNumeros
 }
 
-const contarNumerosRepetidosBloco = () => {
+const contarNumerosRepetidosBloco = (matrix) => {
 	let quantidadeNumeros = 0
 	for(let l = 0; l < 3; l += 1) {
 		for(let c = 0; c < 3; c += 1) {
@@ -226,18 +414,38 @@ const contarNumerosRepetidosBloco = () => {
 // }
 
 const crearFaltantes = () => {
+	let falt = []
 	for(let numero = 1; numero < 10; numero++) {
 		for(let vezes = 1; vezes < 10; vezes++) {
 			if(quantidade[numero] > 0){
 				quantidade[numero]--
 			}
 			else{
-				faltantes.push(numero)
+				falt.push(numero)
 			}
     }
+	}
+	return falt
+}
+
+function shuffle(array) {
+  var copy = [], n = array.length, i;
+
+  // While there remain elements to shuffle…
+  while (n) {
+
+    // Pick a remaining element…
+    i = Math.floor(Math.random() * array.length);
+
+    // If not already shuffled, move it to the new array.
+    if (i in array) {
+      copy.push(array[i]);
+      delete array[i];
+      n--;
+    }
   }
-	console.log("faltantes:")
-	console.log(faltantes)
+
+  return copy;
 }
 
 const contarNumeros = () => {
@@ -248,7 +456,7 @@ const contarNumeros = () => {
 			}
     }
   }
-  console.log("numeros:",quantidade);
+	console.log("numeros:",quantidade);
 }
 
 const fixarNumeros = () => {
@@ -257,11 +465,12 @@ const fixarNumeros = () => {
 			if(document.getElementById('cell-'+(linha)+(coluna)).value != 0){
 				disableSudoku(linha,coluna);
 			}
-    	}
-  	}
+		}
+	}
 }
 
-const preencherSudoku = () => {
+const preencherSudoku = (matrix,faltantes) => {
+	individuo = []
 	let falt = clone(faltantes);
 	for(let linha = 1; linha < 10; linha += 1) {
 		for(let coluna = 1; coluna < 10; coluna += 1) {
@@ -273,10 +482,14 @@ const preencherSudoku = () => {
 				falt.splice(newNumero, 1);
 			}
     }
-  }
+	}
+	return {
+		matrix:matrix,
+		individuo:individuo
+	}
 }
 
-const atualizarSudoku = () => {
+const atualizarSudoku = (matrix,individuo,faltantes) => {
 	let falt = clone(faltantes);
 	let c = 0
 	for(let linha = 1; linha < 10; linha += 1) {
@@ -288,8 +501,9 @@ const atualizarSudoku = () => {
 				falt.splice(newNumero, 1);
 				c++
 			}
-    	}
-  	}
+		}
+	}
+	return matrix
 }
 
 const sudoku = (l,c) =>{
@@ -302,6 +516,8 @@ const sudoku = (l,c) =>{
 }
 
 const setSudoku = (l,c,n) =>{
+	if(n == undefined)
+		debugger
 	document.getElementById('cell-'+(l)+(c)).value = n;
 }
 
@@ -309,15 +525,6 @@ const disableSudoku = (l,c) =>{
 	document.getElementById('cell-'+(l)+(c)).style.color = "blue";
 	document.getElementById('cell-'+(l)+(c)).disabled = true;
 }
-
-// const clone = (obj) => {
-//     if (null == obj || "object" != typeof obj) return obj;
-//     var copy = obj.constructor();
-//     for (var attr in obj) {
-//         if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
-//     }
-//     return copy;
-// }
 
 function clone(obj) {
   var copy;
@@ -357,5 +564,11 @@ const setValMatrix = (v) =>{
 	console.log(v)
 }
 
-fixarNumeros()
-//hillClimbing()
+// hillClimbing()
+
+const testIndividuo = (individuo) => {
+	let _matrix = inicializarMatriz()
+	_matrix = atualizarSudoku(_matrix,individuo,faltantes)
+	console.log(_matrix)
+	console.log(calFuncObjetivo(_matrix))
+}
